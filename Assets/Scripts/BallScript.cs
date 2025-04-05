@@ -35,15 +35,15 @@ public class BallScript : MonoBehaviour
         SwitchBowlingSide();
     }
 
-    public void Bowl(Vector3 hitGroundPosition)
+    public void Bowl(Vector3 hitGroundPosition, float accuracy)
     {
         // Setup the initial bowling path
         float effectAngle = isSwingBowling ? swingAngle : 0f;
-        MoveToPitch(transform.position, hitGroundPosition, effectAngle);
+        MoveToPitch(transform.position, hitGroundPosition, effectAngle, accuracy);
     }
 
     // Function 1: Handle all movement BEFORE hitting the pitch
-    void MoveToPitch(Vector3 startPos, Vector3 pitchPos, float lateralAngle)
+    void MoveToPitch(Vector3 startPos, Vector3 pitchPos, float lateralAngle, float accuracy)
     {
         Vector3 start = startPos;
         Vector3 end = pitchPos;
@@ -55,21 +55,21 @@ public class BallScript : MonoBehaviour
 
         // Create a middle control point with appropriate effect
         Vector3 mid = Vector3.Lerp(start, end, 0.5f);
-        mid += directionVector * lateralAngle; // For swing: use angle, for spin: angle = 0
+        mid += directionVector * lateralAngle * accuracy; // Adjust lateral angle by accuracy
         mid.y += 2f; // Height adjustment
 
-        StartCoroutine(MoveBeforePitch(start, mid, end, bowlDuration));
+        StartCoroutine(MoveBeforePitch(start, mid, end, bowlDuration, accuracy));
     }
 
     // Function 2: Handle all movement AFTER hitting the pitch
-    void MoveAfterPitch(Vector3 pitchPos, Vector3 direction, float effectAngle)
+    void MoveAfterPitch(Vector3 pitchPos, Vector3 direction, float effectAngle, float accuracy)
     {
         // For swing: effectAngle = 0, for spin: effectAngle = spinAngle
         Vector3 directionVector = Vector3.Cross(Vector3.up, direction).normalized;
 
         // Apply velocity with appropriate direction and effect
         Vector3 velocity = direction.normalized * 10f; // Base velocity
-        velocity += directionVector * effectAngle * 0.5f; // Add lateral effect
+        velocity += directionVector * effectAngle * 0.5f * accuracy; // Add lateral effect adjusted by accuracy
         velocity.y = Mathf.Abs(velocity.y) * bounceFactor; // Bounce effect
 
         // Enable physics and apply the velocity
@@ -78,7 +78,7 @@ public class BallScript : MonoBehaviour
         rb.velocity = velocity;
     }
 
-    IEnumerator MoveBeforePitch(Vector3 start, Vector3 control, Vector3 end, float duration)
+    IEnumerator MoveBeforePitch(Vector3 start, Vector3 control, Vector3 end, float duration, float accuracy)
     {
         // Make sure the ball is kinematic during the controlled movement
         rb.isKinematic = true;
@@ -112,6 +112,6 @@ public class BallScript : MonoBehaviour
         // For swing bowling: no spin (0)
         // For spin bowling: apply spin angle
         float afterPitchEffect = isSwingBowling ? 0f : spinAngle;
-        MoveAfterPitch(transform.position, impactDirection, afterPitchEffect);
+        MoveAfterPitch(transform.position, impactDirection, afterPitchEffect, accuracy);
     }
 }
