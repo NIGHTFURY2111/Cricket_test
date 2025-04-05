@@ -5,16 +5,20 @@ using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
+    bool isBowling;
+
     PlayerControls playerControls;
     InputAction moveAction;
 
     [SerializeField] GameObject puckGameObject;
     [SerializeField] GameObject BallGameObject;
+    MovePuck puckScript;
 
     #region input system setup
     private void Awake()
     {
         playerControls = new PlayerControls();
+        puckScript = puckGameObject.GetComponent<MovePuck>();
         moveAction = playerControls.HitPoint.move;
     }
 
@@ -34,6 +38,9 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(MoveDir);
+        if (isBowling)
+        {
+            puckScript.movePuck(MoveDir);
+        }
     }
 }

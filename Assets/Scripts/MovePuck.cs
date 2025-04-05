@@ -4,15 +4,12 @@ using UnityEngine;
 
 public class MovePuck : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+[SerializeField] private float speed = 5f;
+
+    public void movePuck(Vector2 PlayerInput)
     {
-        
+        Vector3 direction = new Vector3 (PlayerInput.x, 0f , PlayerInput.y);
+        transform.Translate(direction * speed * Time.deltaTime);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }
