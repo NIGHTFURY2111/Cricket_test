@@ -3337,7 +3337,7 @@ MonoBehaviour:
   spinAngle: 5
   swingAngle: -2
   bounceFactor: 0.7
-  bowlDuration: 0.1
+  bowlDuration: 1
 --- !u!54 &1943595825
 Rigidbody:
   m_ObjectHideFlags: 0
