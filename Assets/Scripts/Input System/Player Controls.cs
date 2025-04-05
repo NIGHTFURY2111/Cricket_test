@@ -35,6 +35,24 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Bowl"",
+                    ""type"": ""Button"",
+                    ""id"": ""d1f7e13c-f6a1-44da-828f-f668326b9467"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""reset"",
+                    ""type"": ""Button"",
+                    ""id"": ""3b91f35c-497a-47de-902e-335cc707f727"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -92,6 +110,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3b2cda88-c84e-4a47-8098-721f464c2722"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Bowl"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0e386a9c-7944-476b-8178-1630362bcfac"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""reset"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -101,6 +141,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // Hit Point
         m_HitPoint = asset.FindActionMap("Hit Point", throwIfNotFound: true);
         m_HitPoint_move = m_HitPoint.FindAction("move", throwIfNotFound: true);
+        m_HitPoint_Bowl = m_HitPoint.FindAction("Bowl", throwIfNotFound: true);
+        m_HitPoint_reset = m_HitPoint.FindAction("reset", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -163,11 +205,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_HitPoint;
     private List<IHitPointActions> m_HitPointActionsCallbackInterfaces = new List<IHitPointActions>();
     private readonly InputAction m_HitPoint_move;
+    private readonly InputAction m_HitPoint_Bowl;
+    private readonly InputAction m_HitPoint_reset;
     public struct HitPointActions
     {
         private @PlayerControls m_Wrapper;
         public HitPointActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @move => m_Wrapper.m_HitPoint_move;
+        public InputAction @Bowl => m_Wrapper.m_HitPoint_Bowl;
+        public InputAction @reset => m_Wrapper.m_HitPoint_reset;
         public InputActionMap Get() { return m_Wrapper.m_HitPoint; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -180,6 +226,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @move.started += instance.OnMove;
             @move.performed += instance.OnMove;
             @move.canceled += instance.OnMove;
+            @Bowl.started += instance.OnBowl;
+            @Bowl.performed += instance.OnBowl;
+            @Bowl.canceled += instance.OnBowl;
+            @reset.started += instance.OnReset;
+            @reset.performed += instance.OnReset;
+            @reset.canceled += instance.OnReset;
         }
 
         private void UnregisterCallbacks(IHitPointActions instance)
@@ -187,6 +239,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @move.started -= instance.OnMove;
             @move.performed -= instance.OnMove;
             @move.canceled -= instance.OnMove;
+            @Bowl.started -= instance.OnBowl;
+            @Bowl.performed -= instance.OnBowl;
+            @Bowl.canceled -= instance.OnBowl;
+            @reset.started -= instance.OnReset;
+            @reset.performed -= instance.OnReset;
+            @reset.canceled -= instance.OnReset;
         }
 
         public void RemoveCallbacks(IHitPointActions instance)
@@ -207,5 +265,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     public interface IHitPointActions
     {
         void OnMove(InputAction.CallbackContext context);
+        void OnBowl(InputAction.CallbackContext context);
+        void OnReset(InputAction.CallbackContext context);
     }
 }
