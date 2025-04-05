@@ -63,8 +63,8 @@ public class GameManager : MonoBehaviour
         if (resetAction.WasPressedThisFrame())
         {
             isBowling = false;
-            puckGameObject.transform.position = Vector3.zero;
-            ballScript.SwitchBowlingSide();
+            puckScript.Reset();
+            ballScript.Reset();
         }
     }
 

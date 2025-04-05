@@ -12,4 +12,9 @@ public class MovePuck : MonoBehaviour
         transform.Translate(direction * speed * Time.deltaTime);
     }
 
+    public void Reset()
+    {
+        transform.position = Vector3.zero;
+        transform.rotation = Quaternion.identity;
+    }
 }
