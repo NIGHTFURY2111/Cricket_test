@@ -627,9 +627,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   puckGameObject: {fileID: 1989741530}
-  BallGameObject: {fileID: 1943595819}
+  ballGameObject: {fileID: 1943595819}
   sliderFunctions: {fileID: 1831674500}
-  accuracyText: 
+  accuracyZoneBounds:
+  - 1
+  - 10
+  - 25
+  - 40
+  - 60
+  - 75
+  - 90
+  - 99
+  accuracyZoneValues:
+  - 0
+  - 0.2
+  - 0.4
+  - 0.7
+  - 1
+  - 0.7
+  - 0.4
+  - 0.2
+  - 0
+  accuracyZoneTexts:
+  - Miss!
+  - Poor
+  - Fair
+  - Good
+  - Perfect!
+  - Good
+  - Fair
+  - Poor
+  - Miss!
 --- !u!4 &731964431
 Transform:
   m_ObjectHideFlags: 0
@@ -2038,7 +2066,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -2553,7 +2581,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1

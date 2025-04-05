@@ -1,151 +1,215 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
-    bool isBowling;
-    bool canBowl = true; // New flag to track if bowling is allowed
+    [SerializeField] private GameObject puckGameObject;
+    [SerializeField] private GameObject ballGameObject;
+    [SerializeField] private SliderFunctions sliderFunctions;
 
-    PlayerControls playerControls;
-    InputAction moveAction;
-    InputAction bowlAction;
-    InputAction resetAction;
+    // Accuracy zones configuration - could be moved to ScriptableObject
+    [SerializeField] private float[] accuracyZoneBounds = { 1f, 10f, 25f, 40f, 60f, 75f, 90f, 99f };
+    [SerializeField] private float[] accuracyZoneValues = { 0f, 0.2f, 0.4f, 0.7f, 1f, 0.7f, 0.4f, 0.2f, 0f };
+    [SerializeField] private string[] accuracyZoneTexts = { "Miss!", "Poor", "Fair", "Good", "Perfect!", "Good", "Fair", "Poor", "Miss!" };
 
-    [SerializeField] GameObject puckGameObject;
-    [SerializeField] GameObject BallGameObject;
-    [SerializeField] SliderFunctions sliderFunctions;
-    [SerializeField] private string accuracyText; // Display for debugging
-    MovePuck puckScript;
-    BallScript ballScript;
+    private MovePuck _puckScript;
+    private BallScript _ballScript;
+    private PlayerControls _playerControls;
+    private InputAction _moveAction;
+    private InputAction _bowlAction;
+    private InputAction _resetAction;
 
-    #region input system setup
+    private bool _isBowling;
+    private bool _canBowl = true;
+    private string _accuracyText;
+
+    // Public event for UI to subscribe to
+    public event Action<string, float> OnAccuracyCalculated;
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        playerControls = new PlayerControls();
-        puckScript = puckGameObject.GetComponent<MovePuck>();
-        ballScript = BallGameObject.GetComponent<BallScript>();
-        moveAction = playerControls.HitPoint.move;
-        bowlAction = playerControls.HitPoint.Bowl;
-        resetAction = playerControls.HitPoint.reset;
-        isBowling = false;
-        canBowl = true; // Can bowl at the start of the game
+        InitializeComponents();
+        SetupInputActions();
     }
 
     private void OnEnable()
     {
-        moveAction.Enable();
-        bowlAction.Enable();
-        resetAction.Enable();
+        EnableInputActions();
     }
 
     private void OnDisable()
     {
-        moveAction.Disable();
-        bowlAction.Disable();
-        resetAction.Disable();
+        DisableInputActions();
+    }
+
+    private void Update()
+    {
+        HandleInput();
     }
 
     #endregion
 
-    public Vector2 MoveDir => moveAction.ReadValue<Vector2>();
+    #region Initialization
 
-    // Calculate accuracy based on zones
-    private float CalculateAccuracyFromZone(float sliderValue)
+    private void InitializeComponents()
     {
-        // Convert slider value from 0-1 to 0-100 for easier zone calculation
-        float value = sliderValue * 100f;
-
-        // Determine the accuracy zone
-        if (value <= 1 || value >= 99)
-        {
-            accuracyText = "Miss!"; // For debugging
-            return 0f; // 0% accuracy
-        }
-        else if ((value > 1 && value <= 10) || (value >= 90 && value < 99))
-        {
-            accuracyText = "Poor"; // For debugging
-            return 0.2f; // 20% accuracy
-        }
-        else if ((value > 10 && value <= 25) || (value >= 75 && value < 90))
-        {
-            accuracyText = "Fair"; // For debugging
-            return 0.4f; // 40% accuracy
-        }
-        else if ((value > 25 && value <= 40) || (value >= 60 && value < 75))
-        {
-            accuracyText = "Good"; // For debugging
-            return 0.7f; // 70% accuracy
-        }
-        else // value > 40 && value < 60 (center zone)
-        {
-            accuracyText = "Perfect!"; // For debugging
-            return 1f; // 100% accuracy
-        }
+        _puckScript = puckGameObject?.GetComponent<MovePuck>();
+        _ballScript = ballGameObject?.GetComponent<BallScript>();
+        _playerControls = new PlayerControls();
     }
 
-    void Update()
+    private void SetupInputActions()
     {
-        if (!isBowling)
+        if (_playerControls == null) return;
+
+        _moveAction = _playerControls.HitPoint.move;
+        _bowlAction = _playerControls.HitPoint.Bowl;
+        _resetAction = _playerControls.HitPoint.reset;
+    }
+
+    private void EnableInputActions()
+    {
+        _moveAction?.Enable();
+        _bowlAction?.Enable();
+        _resetAction?.Enable();
+    }
+
+    private void DisableInputActions()
+    {
+        _moveAction?.Disable();
+        _bowlAction?.Disable();
+        _resetAction?.Disable();
+    }
+
+    #endregion
+
+    #region Input Handling
+
+    private void HandleInput()
+    {
+        if (!_isBowling && _puckScript != null)
         {
-            puckScript.movePuck(MoveDir);
+            _puckScript.movePuck(_moveAction.ReadValue<Vector2>());
         }
 
-        if (bowlAction.WasPressedThisFrame() && canBowl)
+        if (_bowlAction.WasPressedThisFrame() && _canBowl)
         {
             InitiateBowling();
         }
 
-        if (resetAction.WasPressedThisFrame())
+        if (_resetAction.WasPressedThisFrame())
         {
             ResetGame();
         }
     }
 
-    // Public method for initiating the bowling action - can be called by buttons
+    public Vector2 MoveDir => _moveAction?.ReadValue<Vector2>() ?? Vector2.zero;
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Initiates the bowling process or completes it if already in progress
+    /// </summary>
     public void InitiateBowling()
     {
-        if (!canBowl) return; // Guard clause to prevent invalid bowling
+        if (!_canBowl) return;
 
-        if (!isBowling)
+        if (!_isBowling)
         {
-            // Start the slider when the player decides to bowl
-            sliderFunctions.StartSliderFunction();
-            isBowling = true;
+            StartBowling();
         }
         else
         {
-            // Get the slider value and calculate accuracy using the zone system
-            float sliderValue = sliderFunctions.StopGetSliderValue();
-            float accuracy = CalculateAccuracyFromZone(sliderValue);
-
-            // Debug.Log for testing accuracy
-            Debug.Log($"Slider: {sliderValue:F2}, Accuracy: {accuracy:F2}, Zone: {accuracyText}");
-
-            ballScript.Bowl(puckGameObject.transform.position, accuracy);
-            isBowling = false;
-            canBowl = false; // Prevent bowling until reset
+            CompleteBowling();
         }
     }
 
-    // Public method for resetting the game - can be called by buttons
+    /// <summary>
+    /// Resets the game state
+    /// </summary>
     public void ResetGame()
     {
-        isBowling = false;
-        canBowl = true; // Allow bowling after reset
-        puckScript.Reset();
-        ballScript.Reset();
+        _isBowling = false;
+        _canBowl = true;
+
+        if (_puckScript != null) _puckScript.Reset();
+        if (_ballScript != null) _ballScript.Reset();
     }
 
+    /// <summary>
+    /// Sets the bowling side
+    /// </summary>
     public void IsBowlingFromLeft(bool isLeft)
     {
-        ballScript.isLeftSide = isLeft;
-        ballScript.SwitchBowlingSide();
+        if (_ballScript == null) return;
+
+        _ballScript.isLeftSide = isLeft;
+        _ballScript.SwitchBowlingSide();
     }
 
+    /// <summary>
+    /// Sets the bowling type
+    /// </summary>
     public void IsSwingBowling(bool isSwingBowling)
     {
-        ballScript.isSwingBowling = isSwingBowling;
+        if (_ballScript == null) return;
+
+        _ballScript.isSwingBowling = isSwingBowling;
     }
+
+    #endregion
+
+    #region Private Methods
+
+    private void StartBowling()
+    {
+        if (sliderFunctions == null) return;
+
+        sliderFunctions.StartSliderFunction();
+        _isBowling = true;
+    }
+
+    private void CompleteBowling()
+    {
+        if (sliderFunctions == null || _ballScript == null || _puckScript == null) return;
+
+        float sliderValue = sliderFunctions.StopGetSliderValue();
+        float accuracy = CalculateAccuracyFromZone(sliderValue);
+
+        // Notify any UI listeners
+        OnAccuracyCalculated?.Invoke(_accuracyText, accuracy);
+
+        Debug.Log($"Slider: {sliderValue:F2}, Accuracy: {accuracy:F2}, Zone: {_accuracyText}");
+
+        _ballScript.Bowl(_puckScript.transform.position, accuracy);
+        _isBowling = false;
+        _canBowl = false;
+    }
+
+    private float CalculateAccuracyFromZone(float sliderValue)
+    {
+        float value = sliderValue * 100f;
+
+        // Find which zone the value falls into
+        for (int i = 0; i < accuracyZoneBounds.Length; i++)
+        {
+            if (value <= accuracyZoneBounds[i])
+            {
+                _accuracyText = accuracyZoneTexts[i];
+                return accuracyZoneValues[i];
+            }
+        }
+
+        // Default for values > 99
+        _accuracyText = accuracyZoneTexts[accuracyZoneTexts.Length - 1];
+        return accuracyZoneValues[accuracyZoneValues.Length - 1];
+    }
+
+    #endregion
 }

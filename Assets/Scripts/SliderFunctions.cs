@@ -21,10 +21,8 @@ public class SliderFunctions : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (StartSlider)
-        {
-        slider.value = Mathf.PingPong(Time.time *sliderSpeed, 1);
-        }
+        
+        slider.value = (StartSlider) ? Mathf.PingPong(Time.time *sliderSpeed, 1):0;
     }
 
     public void StartSliderFunction()
@@ -34,9 +32,8 @@ public class SliderFunctions : MonoBehaviour
 
     public float StopGetSliderValue()
     {
-        StartSlider = false;
         float returnValue = slider.value;
-        slider.value = 0;
+        StartSlider = false;
         return returnValue;
 
     }
